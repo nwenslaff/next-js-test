@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useState, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   QuoteGroup,
   QuoteLine,
@@ -25,42 +31,55 @@ export const useQuoteBuilder = () => {
 export const QuoteBuilderProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const defaultGroups: QuoteGroup[] = [];
+  useEffect(() => {
+    console.log("using effect...");
 
-  for (let i = 0; i < 100; i++) {
-    const quoteLines: QuoteLine[] = [];
+    const defaultGroups: QuoteGroup[] = [];
 
-    for (let j = 0; j < 10; j++) {
-      quoteLines.push({
+    for (let i = 0; i < 1000; i++) {
+      const quoteLines: QuoteLine[] = [];
+
+      for (let j = 0; j < 10; j++) {
+        quoteLines.push({
+          id: crypto.randomUUID(),
+          selectedItem: `Human Biospecimens Ver. ${j + 1}`,
+          listPrice: j * 100000 + 100000,
+          unit: "Sample",
+          quantity: 1,
+          discount: 0,
+          discountAmount: 0,
+          totalPrice: j * 100000 + 100000,
+          description:
+            "Frozen: Yes | Minimum Sample Date: 2 weeks | Source: Wild Caught | Packaging Material: Screw Cap Test Tube | Certification: Delivery Certified | Weight: 50g | Color: Red",
+        });
+      }
+
+      defaultGroups.push({
         id: crypto.randomUUID(),
-        selectedItem: `Human Biospecimens Ver. ${j + 1}`,
-        listPrice: j * 100000 + 100000,
-        unit: "Sample",
-        quantity: 1,
-        discount: 0,
-        discountAmount: 0,
-        totalPrice: j * 100000 + 100000,
-        description:
-          "Frozen: Yes | Minimum Sample Date: 2 weeks | Source: Wild Caught | Packaging Material: Screw Cap Test Tube | Certification: Delivery Certified | Weight: 50g | Color: Red",
+        total: i * 100000,
+        lines: quoteLines,
       });
     }
 
-    defaultGroups.push({
-      id: crypto.randomUUID(),
-      total: i * 100000,
-      lines: quoteLines,
-    });
-  }
+    setGroups(defaultGroups);
+  }, []);
 
-  const [groups, setGroups] = useState<QuoteGroup[]>(defaultGroups);
+  const [groups, setGroups] = useState<QuoteGroup[]>([]);
 
-  const updateGroup = (groupIndex: number, updatedGroup: QuoteGroup) => {
-    setGroups(
-      groups.map((group, index) =>
-        index === groupIndex ? updatedGroup : group
-      )
-    );
-  };
+  const updateGroup = useCallback(
+    (groupIndex: number, updatedGroup: QuoteGroup) => {
+      const newGroups = [...groups];
+      newGroups[groupIndex] = updatedGroup;
+      setGroups(newGroups);
+    },
+    []
+  );
+
+  // const updateGroup = (groupIndex: number, updatedGroup: QuoteGroup) => {
+  //   const newGroups = [...groups];
+  //   newGroups[groupIndex] = updatedGroup;
+  //   setGroups(newGroups);
+  // };
 
   const handleLineAction = (
     groupIndex: number,
@@ -116,18 +135,11 @@ export const QuoteBuilderProvider: React.FC<{ children: React.ReactNode }> = ({
     setGroups(newGroups);
     console.timeLog("handleLineAction", "newGroups");
 
-    console.timeEnd();
+    console.timeEnd("handleLineAction");
   };
 
   const addGroup = () => {
-    setGroups([
-      ...groups,
-      {
-        id: Date.now().toString(),
-        total: 0,
-        lines: [],
-      },
-    ]);
+    setGroups([...groups]);
   };
 
   return (
